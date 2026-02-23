@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    Release_Notes.txt
- * @version V1.6.2
- * @date    2025-07-30
+ * @version V1.7.1
+ * @date    2026-02-09
  * @brief   The Release notes of HT32 Firmware Library.
  *************************************************************************************************************
  * @attention
@@ -35,7 +35,26 @@
 //   HT32F22366
 
 /*----------------------------------------------------------------------------------------------------------*/
-/* HT32_STD_5xxxx_FWLib_V1.6.2_3550                                                                         */
+/* HT32_STD_1xxxx_FWLib_V1.7.1_3596                                                                         */
+/*----------------------------------------------------------------------------------------------------------*/
+  Release Date: 2026-02-09
+  Main Changes
+  + Update "ht32f1xxxx_aes.c" to enhance the waiting mechanism for encryption/decryption process.
+  + Update "StackUsageAnalysisInit()" compatibility to include support for the GNU (GCC) compiler environment.
+  + Update "syscalls.c" as below.
+    - Modify "_sbrk()" to add heap size checks and overflow protection for safer memory allocation.
+    - Modify "scanf()" integer limit macros by prefixing them with "HT_" for clearer naming and improved type safety.
+  + Fix I2C SHPGR/SLPGR overflow issue when operating at high PCLK and low SCL speeds.
+  + Fix an incorrect parameter limit in SCI_ETUConfig(), increasing the maximum SCI_ETU value to 2048.
+  + Update TM/PWM example by casting the parameter in PWM_UpdateDuty to (u32) to eliminate IAR compiler warnings.
+
+  Others
+  + Update comment, format, typing error, and coding style.
+  + Update LICENSE.md license declaration.
+  + Update and sync create project related files.
+
+/*----------------------------------------------------------------------------------------------------------*/
+/* HT32_STD_1xxxx_FWLib_V1.6.2_3550                                                                         */
 /*----------------------------------------------------------------------------------------------------------*/
   Release Date: 2025-07-30
   Main Changes

@@ -34,8 +34,8 @@
 #endif
 
 /* Settings ------------------------------------------------------------------------------------------------*/
-#define HT32_FWLIB_VER                  (0x01006002)
-#define HT32_FWLIB_SVN                  (0x3550)
+#define HT32_FWLIB_VER                  (0x01007001)
+#define HT32_FWLIB_SVN                  (0x3596)
 
 #if defined(USE_HT32F1653_54)
   #include "ht32f1653_54_libcfg.h"

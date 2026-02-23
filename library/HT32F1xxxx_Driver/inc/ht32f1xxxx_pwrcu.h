@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_pwrcu.h
- * @version $Rev:: 2971         $
- * @date    $Date:: 2023-10-25 #$
+ * @version $Rev:: 3553         $
+ * @date    $Date:: 2025-08-06 #$
  * @brief   The header file of the Power Control Unit library.
  *************************************************************************************************************
  * @attention
@@ -110,6 +110,7 @@ typedef enum
   #define PWRCU_LVDS_3V15           PWRCU_LVDS_LV7
   #define PWRCU_LVDS_3V3            PWRCU_LVDS_LV8
 #endif
+
 /**
  * @brief BOD reset or interrupt selection
  */
@@ -118,6 +119,7 @@ typedef enum
   PWRCU_BODRIS_RESET = 0,  /*!< Reset the whole chip                                                        */
   PWRCU_BODRIS_INT   = 1,  /*!< Assert interrupt                                                            */
 } PWRCU_BODRIS_Enum;
+
 /**
  * @brief Sleep entry instruction selection
  */
@@ -126,6 +128,7 @@ typedef enum
   PWRCU_SLEEP_ENTRY_WFE = 0,          /*!< Sleep then wait for event                                        */
   PWRCU_SLEEP_ENTRY_WFI               /*!< Sleep then wait for interrupt                                    */
 } PWRCU_SLEEP_ENTRY_Enum;
+
 #if (!LIBCFG_NO_BACK_DOMAIN)
 /**
  * @brief Backup register selection
@@ -144,6 +147,7 @@ typedef enum
   PWRCU_BAKREG_9
 } PWRCU_BAKREG_Enum;
 #endif
+
 /**
  * @brief Vdd18/Vdd15 power good source selection
  */
@@ -161,6 +165,7 @@ typedef enum
   PWRCU_LDO_NORMAL = 0,     /*!< The LDO is operated in normal current mode                                 */
   PWRCU_LDO_LOWCURRENT      /*!< The LDO is operated in low current mode                                    */
 } PWRCU_LDOMODE_Enum;
+
 /**
  * @brief LDO output offset selection
  */
@@ -172,6 +177,7 @@ typedef enum
   PWRCU_LDO_OFFSET_ADD7P = 0x00000030,  /*!< The LDO default output voltage offset +7%                      */
 } PWRCU_LDOFTRM_Enum;
 #endif
+
 /**
  * @brief HSI ready counter bit length selection
  */
@@ -182,6 +188,7 @@ typedef enum
   PWRCU_HSIRCBL_6,      /*!< 5 bits                                                                         */
   PWRCU_HSIRCBL_7       /*!< 7 bits (Default)                                                               */
 } PWRCU_HSIRCBL_Enum;
+
 /**
   * @}
   */
