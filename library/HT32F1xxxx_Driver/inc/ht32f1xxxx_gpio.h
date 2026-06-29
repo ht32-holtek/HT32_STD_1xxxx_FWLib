@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_gpio.h
- * @version $Rev:: 2971         $
- * @date    $Date:: 2023-10-25 #$
+ * @version $Rev:: 3620         $
+ * @date    $Date:: 2026-05-04 #$
  * @brief   The header file of the GPIO and AFIO library.
  *************************************************************************************************************
  * @attention
@@ -195,7 +195,6 @@ typedef enum
 #define AFIO_FUN_SCTM0      AFIO_FUN_SCTM
 #define AFIO_FUN_SCTM1      AFIO_FUN_SCTM
 
-#define AFIO_FUN_ADC        AFIO_FUN_ADC0
 #define AFIO_FUN_PWM_SCTM   AFIO_MODE_13
 
 /* Definitions of GPIO_Px                                                                                   */
@@ -289,23 +288,29 @@ typedef enum
   * @{
   */
 /* check parameter of the GPIOx                                                                             */
-#define IS_GPIO(x)           (IS_GPIOABCD(x) || IS_GPIOE(x) || IS_GPIOF(x))
-#define IS_GPIOABCD(x)       ((x==HT_GPIOA) || (x==HT_GPIOB) || (x==HT_GPIOC) || (x==HT_GPIOD))
+#define IS_GPIO(x)           (IS_GPIO1(x) || IS_GPIO2(x) || IS_GPIO3(x) || IS_GPIO4(x) || IS_GPIO5(x))
+
+#define IS_GPIO1(x)          ((x == HT_GPIOA) || (x == HT_GPIOB))
+
+#define IS_GPIO2(x)          (x == HT_GPIOC)
+
+#define IS_GPIO3(x)          (x == HT_GPIOD)
+
 #if (LIBCFG_GPIOE)
-#define IS_GPIOE(x)          (x == HT_GPIOE)
+#define IS_GPIO4(x)          (x == HT_GPIOE)
 #else
-#define IS_GPIOE(x)          (0)
+#define IS_GPIO4(x)          (0)
 #endif
 #if (LIBCFG_GPIOF)
-#define IS_GPIOF(x)          (x == HT_GPIOF)
+#define IS_GPIO5(x)          (x == HT_GPIOF)
 #else
-#define IS_GPIOF(x)          (0)
+#define IS_GPIO5(x)          (0)
 #endif
 
 /* check parameter of the GPIO_Px                                                                           */
 #define IS_GPIO_PORT(x)           (IS_GPIO_PORT1(x) || IS_GPIO_PORT2(x) || IS_GPIO_PORT3(x) || IS_GPIO_PORT4(x) || IS_GPIO_PORT5(x))
 
-#define IS_GPIO_PORT1(x)          ((x == GPIO_PA) || (x == GPIO_PB) )
+#define IS_GPIO_PORT1(x)          ((x == GPIO_PA) || (x == GPIO_PB))
 
 #define IS_GPIO_PORT2(x)          (x == GPIO_PC)
 
@@ -322,11 +327,18 @@ typedef enum
 #define IS_GPIO_PORT5(x)          (0)
 #endif
 
-/* check parameter of the GPIO_PIN_NUM                                                                       */
+/* check parameter of the GPIO_PIN_NUM                                                                      */
 #define IS_GPIO_PIN_NUM(x)        (x < 16)
 
+
+#define IS_GPIO_PR_UP(x)           (x == GPIO_PR_UP)
+#define IS_GPIO_PR_DOWN(x)         (x == GPIO_PR_DOWN)
+#define IS_GPIO_PR_DISABLE(x)      (x == GPIO_PR_DISABLE)
+
 /* check parameter of the GPIOx pull resistor                                                               */
-#define IS_GPIO_PR(x)        (((x) == GPIO_PR_UP) || ((x) == GPIO_PR_DOWN) || ((x) == GPIO_PR_DISABLE))
+#define IS_GPIO_PR(x)        (IS_GPIO_PR_UP(x)        || \
+                              IS_GPIO_PR_DOWN(x)      || \
+                              IS_GPIO_PR_DISABLE(x))
 
 /* check parameter of the GPIOx driving current                                                             */
 #if (LIBCFG_GPIO_DV_4_8MA_ONLY)
@@ -337,21 +349,27 @@ typedef enum
 #define IS_GPIO_DV(x)        (((x) == GPIO_DV_4MA) || ((x) == GPIO_DV_8MA) || IS_GPIO_DV_12_16MA(x))
 
 /* check parameter of the GPIOx input/output direction                                                      */
-#define IS_GPIO_DIR(x)       (((x) == GPIO_DIR_IN) || ((x) == GPIO_DIR_OUT) )
+#define IS_GPIO_DIR(x)       (((x) == GPIO_DIR_IN) || ((x) == GPIO_DIR_OUT))
 
 /* check parameter of the EXTI source port                                                                  */
+#define IS_AFIO_ESS(x)       (IS_AFIO_ESS1(x) || IS_AFIO_ESS2(x) || IS_AFIO_ESS3(x) || IS_AFIO_ESS4(x) || IS_AFIO_ESS5(x))
+
+#define IS_AFIO_ESS1(x)      ((x == AFIO_ESS_PA) || (x == AFIO_ESS_PB))
+
+#define IS_AFIO_ESS2(x)      (x == AFIO_ESS_PC)
+
+#define IS_AFIO_ESS3(x)      (x == AFIO_ESS_PD)
+
 #if (LIBCFG_GPIOE)
-#define IS_ESSE(x)           (x == AFIO_ESS_PE)
+#define IS_AFIO_ESS4(x)      (x == AFIO_ESS_PE)
 #else
-#define IS_ESSE(x)           (0)
+#define IS_AFIO_ESS4(x)      (0)
 #endif
 #if (LIBCFG_GPIOF)
-#define IS_ESSF(x)           (x == AFIO_ESS_PF)
+#define IS_AFIO_ESS5(x)      (x == AFIO_ESS_PF)
 #else
-#define IS_ESSF(x)           (0)
+#define IS_AFIO_ESS5(x)      (0)
 #endif
-
-#define IS_AFIO_ESS(x)       ((x == AFIO_ESS_PA) || (x == AFIO_ESS_PB) || (x == AFIO_ESS_PC) || (x == AFIO_ESS_PD) || IS_ESSE(x) || IS_ESSF(x))
 
 /* check parameter of the EXTI channel                                                                      */
 #define IS_AFIO_EXTI_CH(x)   ((x == AFIO_EXTI_CH_0)  || (x == AFIO_EXTI_CH_1)  || \

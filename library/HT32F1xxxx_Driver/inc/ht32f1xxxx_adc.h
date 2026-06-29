@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_adc.h
- * @version $Rev:: 2791         $
- * @date    $Date:: 2022-11-24 #$
+ * @version $Rev:: 3624         $
+ * @date    $Date:: 2026-05-21 #$
  * @brief   The header file of the ADC library.
  *************************************************************************************************************
  * @attention
@@ -55,9 +55,9 @@
 #define CONTINUOUS_MODE                         (0x00000002)
 #define DISCONTINUOUS_MODE                      (0x00000003)
 
-#define IS_ADC_CONVERSION_MODE(REGULAR_MODE)    (((REGULAR_MODE) == ONE_SHOT_MODE)   || \
-                                                 ((REGULAR_MODE) == CONTINUOUS_MODE) || \
-                                                 ((REGULAR_MODE) == DISCONTINUOUS_MODE))
+#define IS_ADC_CONVERSION_MODE(REGULAR_MODE)    ((REGULAR_MODE == ONE_SHOT_MODE)   || \
+                                                 (REGULAR_MODE == CONTINUOUS_MODE) || \
+                                                 (REGULAR_MODE == DISCONTINUOUS_MODE))
 
 #define IS_ADC_HP_CONVERSION_MODE(HP_MODE)      (((HP_MODE) == ONE_SHOT_MODE)   || \
                                                  ((HP_MODE) == CONTINUOUS_MODE) || \
@@ -306,8 +306,8 @@
 #endif
 
 #if (!LIBCFG_NO_CMP_HPTRIG_ADC)
-#define IS_ADC_HPTRIG7(REGTRIG)                  (((REGTRIG) == ADC_HPTRIG_CMP0) || \
-                                                  ((REGTRIG) == ADC_HPTRIG_CMP1))
+#define IS_ADC_HPTRIG7(REGTRIG)                 (((REGTRIG) == ADC_HPTRIG_CMP0) || \
+                                                 ((REGTRIG) == ADC_HPTRIG_CMP1))
 #else
 #define IS_ADC_HPTRIG7(REGTRIG)                 (0)
 #endif
@@ -390,7 +390,6 @@
 #define ADC_PDMA_REGULAR_SINGLE                 (0x00000001)
 #define ADC_PDMA_REGULAR_SUBGROUP               (0x00000002)
 #define ADC_PDMA_REGULAR_CYCLE                  (0x00000004)
-
 #define ADC_PDMA_HP_SINGLE                      (0x00000100)
 #define ADC_PDMA_HP_SUBGROUP                    (0x00000200)
 #define ADC_PDMA_HP_CYCLE                       (0x00000400)
@@ -405,7 +404,9 @@
 
 #define IS_ADC_INPUT_SAMPLING_TIME(TIME)        ((TIME) <= 255)
 
+#if (!LIBCFG_ADC_NO_OFFSET_REG)
 #define IS_ADC_OFFSET(OFFSET)                   ((OFFSET) < 4096)
+#endif
 
 #define IS_ADC_REGULAR_RANK(RANK)               ((RANK) < 16)
 
@@ -417,6 +418,16 @@
 #define IS_ADC_HP_LENGTH(LENGTH)                (((LENGTH) >= 1) && ((LENGTH) <= 4))
 #define IS_ADC_HP_SUB_LENGTH(SUB_LENGTH)        (((SUB_LENGTH) >= 1) && ((SUB_LENGTH) <= 4))
 
+#if (!LIBCFG_ADC_NO_OFFSET_REG)
+typedef enum
+{
+  ADC_ALIGN_RIGHT = (0 << 14),
+  ADC_ALIGN_LEFT  = (1 << 14),
+} ADC_ALIGN_Enum;
+
+#define IS_ADC_ALIGN(ALIGN)                     (((ALIGN) == ADC_ALIGN_RIGHT) || ((ALIGN) == ADC_ALIGN_LEFT))
+#endif
+
 #define ADC_VREF_1V215                          (0ul << 4)
 #define ADC_VREF_2V0                            (1ul << 4)
 #define ADC_VREF_2V5                            (2ul << 4)
@@ -427,13 +438,7 @@
                                                  (SEL == ADC_VREF_2V5)   || \
                                                  (SEL == ADC_VREF_2V7))
 
-typedef enum
-{
-  ADC_ALIGN_RIGHT = (0 << 14),
-  ADC_ALIGN_LEFT  = (1 << 14),
-} ADC_ALIGN_Enum;
 
-#define IS_ADC_ALIGN(ALIGN)                     (((ALIGN) == ADC_ALIGN_RIGHT) || ((ALIGN) == ADC_ALIGN_LEFT))
 /**
   * @}
   */
@@ -455,9 +460,11 @@ void ADC_HPChannelConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u8 Rank, u8 Sampl
 void ADC_HPGroupConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_MODE, u8 Length, u8 SubLength);
 void ADC_HPTrigConfig(HT_ADC_TypeDef* HT_ADCn, u32 ADC_TRIG_x);
 
+#if (!LIBCFG_ADC_NO_OFFSET_REG)
 void ADC_ChannelDataAlign(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ADC_ALIGN_Enum ADC_ALIGN_x);
 void ADC_ChannelOffsetValue(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u16 OffsetValue);
 void ADC_ChannelOffsetCmd(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ControlStatus NewState);
+#endif
 
 void ADC_SoftwareStartConvCmd(HT_ADC_TypeDef* HT_ADCn, ControlStatus NewState);
 void ADC_HPSoftwareStartConvCmd(HT_ADC_TypeDef* HT_ADCn, ControlStatus NewState);

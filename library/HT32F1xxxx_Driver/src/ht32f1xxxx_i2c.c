@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_i2c.c
- * @version $Rev:: 3586         $
- * @date    $Date:: 2025-09-24 #$
+ * @version $Rev:: 3622         $
+ * @date    $Date:: 2026-05-07 #$
  * @brief   This file provides all the I2C firmware functions.
  *************************************************************************************************************
  * @attention
@@ -65,6 +65,9 @@
 /* I2C COMBFILT mask                                                                                        */
 #define CR_COMBFILTER_SET        ((u32)0x00002000)
 #define CR_COMBFILTER_RESET      ((u32)0xFFFFDFFF)
+
+/* I2C SEQ_FILTER mask                                                                                      */
+#define CR_SEQ_FILTER_Msk        ((u32)0x0000C000)
 /**
   * @}
   */
@@ -112,6 +115,7 @@ ErrStatus I2C_Init(HT_I2C_TypeDef* I2Cx, I2C_InitTypeDef* I2C_InitStruct)
   s32 sTmp = 0;
   s32 SHPGR = 0;
   s32 SLPGR = 0;
+  u32 SEQ_FILTER = 0;
   CKCU_PeripPrescaler_TypeDef PCLK_I2Cx = CKCU_PCLK_I2C0;
 
   /* Check the parameters                                                                                   */
@@ -133,23 +137,14 @@ ErrStatus I2C_Init(HT_I2C_TypeDef* I2Cx, I2C_InitTypeDef* I2C_InitStruct)
     PCLK_I2Cx = CKCU_PCLK_I2C1;
   PCLK_Freq = CKCU_GetPeripFrequency(PCLK_I2Cx);
 
-  switch (I2Cx->CR & 0xC000)
+  SEQ_FILTER = I2Cx->CR & CR_SEQ_FILTER_Msk;
+  if (SEQ_FILTER == SEQ_FILTER_DISABLE)
   {
-    case 0:
-    {
-      sTmp = 6;
-      break;
-    }
-    case 0x4000:
-    {
-      sTmp = 8;
-      break;
-    }
-    case 0x8000:
-    {
-      sTmp = 9;
-      break;
-    }
+    sTmp = 6;
+  }
+  else
+  {
+    sTmp = 7 + (SEQ_FILTER >> 14);
   }
 
   SHPGR = (PCLK_Freq * 9)/(I2C_InitStruct->I2C_Speed * 20) - sTmp - I2C_InitStruct->I2C_SpeedOffset;
@@ -740,68 +735,45 @@ void I2C_SequentialFilterConfig(HT_I2C_TypeDef* I2Cx, u32 Seq_Filter_Select)
 {
   u32 SHPGR = I2Cx->SHPGR;
   u32 SLPGR = I2Cx->SLPGR;
+  u32 SEQ_FILTER = I2Cx->CR & CR_SEQ_FILTER_Msk;
+  u32 PGR_VALUE;
 
   /* Check the parameters                                                                                   */
   Assert_Param(IS_I2C(I2Cx));
   Assert_Param(IS_I2C_SEQ_FILTER_MASK(Seq_Filter_Select));
 
-  switch (I2Cx->CR & 0xC000)
+  if (SEQ_FILTER < Seq_Filter_Select)
   {
-    case 0:
-      if (Seq_Filter_Select == SEQ_FILTER_1_PCLK)
-      {
-        if (SHPGR >= 2)
-        {
-          SHPGR -= 2;
-          SLPGR -= 2;
-        }
-      }
-      else if (Seq_Filter_Select == SEQ_FILTER_2_PCLK)
-      {
-        if (SHPGR >= 2)
-        {
-          SHPGR -= 3;
-          SLPGR -= 3;
-        }
-      }
-      break;
-
-    case 0x4000:
-      if (Seq_Filter_Select == SEQ_FILTER_DISABLE)
-      {
-        SHPGR += 2;
-        SLPGR += 2;
-      }
-      else if (Seq_Filter_Select == SEQ_FILTER_2_PCLK)
-      {
-        if (SHPGR >= 1)
-        {
-          SHPGR -= 1;
-          SLPGR -= 1;
-        }
-      }
-      break;
-
-    case 0x8000:
-      if (Seq_Filter_Select == SEQ_FILTER_DISABLE)
-      {
-        SHPGR += 3;
-        SLPGR += 3;
-      }
-      else if (Seq_Filter_Select == SEQ_FILTER_1_PCLK)
-      {
-        SHPGR += 1;
-        SLPGR += 1;
-      }
-      break;
-
-    default:
-      break;
+    PGR_VALUE = (Seq_Filter_Select - SEQ_FILTER) >> 14;
+    if (SEQ_FILTER == SEQ_FILTER_DISABLE)
+    {
+      PGR_VALUE += 1;
+    }
+    if (SHPGR >= PGR_VALUE)
+    {
+      SHPGR -= PGR_VALUE;
+      SLPGR -= PGR_VALUE;
+    }
+    else
+    {
+      SHPGR = 0;
+      SLPGR = 0;
+    }
+  }
+  else if (SEQ_FILTER > Seq_Filter_Select)
+  {
+    PGR_VALUE = (SEQ_FILTER - Seq_Filter_Select) >> 14;
+    if (Seq_Filter_Select == SEQ_FILTER_DISABLE)
+    {
+      PGR_VALUE += 1;
+    }
+    SHPGR += PGR_VALUE;
+    SLPGR += PGR_VALUE;
   }
 
   I2Cx->SHPGR = SHPGR;
   I2Cx->SLPGR = SLPGR;
-  I2Cx->CR = (I2Cx->CR & 0x3FFF) | Seq_Filter_Select;
+  I2Cx->CR = (I2Cx->CR & ~CR_SEQ_FILTER_Msk) | Seq_Filter_Select;
 }
 /**
   * @}

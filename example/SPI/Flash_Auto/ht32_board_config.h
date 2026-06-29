@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
- * @file    SPI/Flash/ht32_board_config.h
- * @version $Rev:: 2967         $
- * @date    $Date:: 2023-10-20 #$
+ * @file    SPI/Flash_Auto/ht32_board_config.h
+ * @version $Rev:: 3643         $
+ * @date    $Date:: 2026-06-02 #$
  * @brief   The header file of board configuration.
  *************************************************************************************************************
  * @attention
@@ -36,8 +36,11 @@
 /* Settings ------------------------------------------------------------------------------------------------*/
 /* !!! NOTICE !!!
    For the development board which uses "USE_HT32XXXXXX_DVB":
-   The example requires external components on the expansion board but the development board can not use
-   with it directly. The extra jumper/wired connections may be required to use this example.
+   1. The example requires external components on the expansion board but the development board can not use
+      with it directly.
+   2. The extra jumper/wired connections may be required to use this example.
+   3. Using extra jumper/wired may affect the maximum speed and quality of the signal. For communication interface
+      such as SPI/EBI/..., it may be necessary to appropriately reduce the speed by AHB/APB clock prescaler settings.
 */
 
 

@@ -1,7 +1,7 @@
 /********************************************************************************************************//**
  * @file    ht32f1xxxx_ebi.c
- * @version $Rev:: 2788         $
- * @date    $Date:: 2022-11-24 #$
+ * @version $Rev:: 3619         $
+ * @date    $Date:: 2026-04-30 #$
  * @brief   This file provides all the EBI firmware functions.
  *************************************************************************************************************
  * @attention
@@ -97,29 +97,29 @@ void EBI_Init(EBI_InitTypeDef* EBI_InitStruct)
   #endif
 
 
-  *((u32 *)((u32)&HT_EBI->ATR0 + offset)) = EBI_InitStruct->EBI_AddressSetupTime |
+  *((u32 *)((u32)&HT_EBI->ATR + offset))  = EBI_InitStruct->EBI_AddressSetupTime |
                                             (EBI_InitStruct->EBI_AddressHoldTime << 8);
 #if (LIBCFG_EBI_V01)
-*((u32 *)((u32)&HT_EBI->RTR0 + offset)) = EBI_InitStruct->EBI_ReadSetupTime |
+  *((u32 *)((u32)&HT_EBI->RTR + offset))  = EBI_InitStruct->EBI_ReadSetupTime |
                                             (EBI_InitStruct->EBI_ReadStrobeTime << 8) |
                                             (EBI_InitStruct->EBI_ReadHoldTime << 16);
 #else
-*((u32 *)((u32)&HT_EBI->RTR0 + offset)) = EBI_InitStruct->EBI_ReadSetupTime |
+  *((u32 *)((u32)&HT_EBI->RTR + offset))  = EBI_InitStruct->EBI_ReadSetupTime |
                                             (EBI_InitStruct->EBI_ReadStrobeTime << 8) |
                                             (EBI_InitStruct->EBI_ReadHoldTime << 16) |
                                             EBI_InitStruct->EBI_PageMode;
 #endif
-  *((u32 *)((u32)&HT_EBI->WTR0 + offset)) = EBI_InitStruct->EBI_WriteSetupTime |
+  *((u32 *)((u32)&HT_EBI->WTR + offset))  = EBI_InitStruct->EBI_WriteSetupTime |
                                             (EBI_InitStruct->EBI_WriteStrobeTime << 8) |
                                             (EBI_InitStruct->EBI_WriteHoldTime << 16);
-  *((u32 *)((u32)&HT_EBI->PR0 + offset)) = EBI_InitStruct->EBI_ChipSelectPolarity |
-                                           (EBI_InitStruct->EBI_ReadEnablePolarity << 1) |
-                                           (EBI_InitStruct->EBI_AddressLatchPolarity << 3) |
-                                           #if (LIBCFG_EBI_BYTELAND_ASYNCREADY)
-                                           (EBI_InitStruct->EBI_ReadySignalPolarity << 4) |
-                                           (EBI_InitStruct->EBI_ByteLanePolarity << 5) |
-                                           #endif
-                                           (EBI_InitStruct->EBI_WriteEnablePolarity << 2);
+  *((u32 *)((u32)&HT_EBI->PR + offset))   = EBI_InitStruct->EBI_ChipSelectPolarity |
+                                            (EBI_InitStruct->EBI_ReadEnablePolarity << 1) |
+                                            (EBI_InitStruct->EBI_AddressLatchPolarity << 3) |
+                                            #if (LIBCFG_EBI_BYTELAND_ASYNCREADY)
+                                            (EBI_InitStruct->EBI_ReadySignalPolarity << 4) |
+                                            (EBI_InitStruct->EBI_ByteLanePolarity << 5) |
+                                            #endif
+                                            (EBI_InitStruct->EBI_WriteEnablePolarity << 2);
 
 
   /*------------------------- EBI Control Register Configuration -------------------------------------------*/

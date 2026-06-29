@@ -1,8 +1,8 @@
 /***************************************************************************//**
  * @file    ht32f1xxxx_01.h
  * @brief   CMSIS Cortex-M3 Device Peripheral Access Layer Header File
- * @version $Rev:: 3212         $
- * @date    $Date:: 2025-03-20 #$
+ * @version $Rev:: 3620         $
+ * @date    $Date:: 2026-05-04 #$
  *
  * @note
  * Copyright (C) Holtek Semiconductor Inc. All rights reserved.
@@ -1101,10 +1101,10 @@ typedef struct
 #endif
   __IO uint32_t SR;              /*!< 0x008    EBI Status Register                                          */
        uint32_t RESERVED1[1];    /*!< 0x00C    Reserved                                                     */
-  __IO uint32_t ATR0;            /*!< 0x010    EBI Address Timing Register 0                                */
-  __IO uint32_t RTR0;            /*!< 0x014    EBI Read Timing Register 0                                   */
-  __IO uint32_t WTR0;            /*!< 0x018    EBI Write Timing Register 0                                  */
-  __IO uint32_t PR0;             /*!< 0x01C    EBI Parity Register 0                                        */
+  __IO uint32_t ATR;             /*!< 0x010    EBI Address Timing Register 0                                */
+  __IO uint32_t RTR;             /*!< 0x014    EBI Read Timing Register 0                                   */
+  __IO uint32_t WTR;             /*!< 0x018    EBI Write Timing Register 0                                  */
+  __IO uint32_t PR;              /*!< 0x01C    EBI Parity Register 0                                        */
 #if !defined(USE_HT32F12364)
   __IO uint32_t ATR1;            /*!< 0x020    EBI Address Timing Register 1                                */
   __IO uint32_t RTR1;            /*!< 0x024    EBI Read Timing Register 1                                   */
@@ -1446,7 +1446,7 @@ typedef struct
 #define HT_ADC                   HT_ADC0
 #define ADC                      ADC0
 #define ADC_IRQn                 ADC0_IRQn
-
+#define AFIO_FUN_ADC             AFIO_FUN_ADC0
 
 /**
   * @}

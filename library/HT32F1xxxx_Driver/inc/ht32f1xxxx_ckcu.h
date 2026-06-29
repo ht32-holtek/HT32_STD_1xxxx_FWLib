@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_ckcu.h
- * @version $Rev:: 3215         $
- * @date    $Date:: 2025-04-08 #$
+ * @version $Rev:: 3642         $
+ * @date    $Date:: 2026-05-28 #$
  * @brief   The header file of the Clock Control Unit library.
  *************************************************************************************************************
  * @attention
@@ -640,6 +640,13 @@ typedef enum
 
 #define IS_CKCU_SLEEP_AHB(PERIPH)  (((PERIPH & 0xFFFFFF1A) == 0) && (PERIPH != 0))
 
+/* HSE Gain mode                                                                                            */
+#define CKCU_HSE_LOW_GAIN_MODE          (0UL << 8)
+#define CKCU_HSE_HIGH_GAIN_MODE         (1UL << 8)
+
+#define IS_GAINMODE(GanMode)    ((GanMode == CKCU_HSE_LOW_GAIN_MODE) || \
+                                 (GanMode == CKCU_HSE_HIGH_GAIN_MODE))
+
 /**
   * @}
   */
@@ -716,6 +723,9 @@ void CKCU_HSIAutoTrimClkConfig(CKCU_ATC_TypeDef CLKSRC);
 void CKCU_HSIAutoTrimCmd(ControlStatus Cmd);
 bool CKCU_HSIAutoTrimIsReady(void);
 #endif
+
+void CKCU_SetHSEGainMode(u32 GanMode);
+
 /**
   * @}
   */

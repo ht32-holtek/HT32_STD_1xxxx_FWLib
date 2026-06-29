@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_adc.c
- * @version $Rev:: 2972         $
- * @date    $Date:: 2023-10-28 #$
+ * @version $Rev:: 3625         $
+ * @date    $Date:: 2026-05-22 #$
  * @brief   This file provides all the ADC firmware functions.
  *************************************************************************************************************
  * @attention
@@ -50,9 +50,11 @@
 #define HLST_SEQ_SET         (0x0000001F)
 #define HTCR_SC_SET          (0x00000001)
 
+#if (!LIBCFG_ADC_NO_OFFSET_REG)
 #define OFR_ADOF_MASK        (0x00000FFF)
 #define OFR_ADAL             (1 << 14)
 #define OFR_ADOFE            (1 << 15)
+#endif
 /**
   * @}
   */
@@ -92,6 +94,7 @@ void ADC_Reset(HT_ADC_TypeDef* HT_ADCn)
   Assert_Param(IS_ADC(HT_ADCn));
 
   HT_ADCn->RST |= ADC_SOFTWARE_RESET;
+  while ((HT_ADCn->RST & ADC_SOFTWARE_RESET) != 0){};
 }
 
 /*********************************************************************************************************//**
@@ -180,12 +183,12 @@ void ADC_HPGroupConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_MODE, u8 Length, u8 SubLe
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_CH_n: the ADC channel to configure
  *   This parameter can be one of the following values:
- *     @arg ADC_CH_n        : ADC Channel x selected, x must between 0 ~ 11
+ *     @arg ADC_CH_n        : ADC Channel n selected, n must between 0 ~ m (m represent the maximum external ADC input channel).
  *     @arg ADC_CH_GND_VREF : ADC GND VREF selected
  *     @arg ADC_CH_VDD_VREF : ADC VDD VREF selected
  * @param Rank: The rank in the regular group sequencer.
  *   This parameter must be between 0 to 15.
- * @param SampleClock: Number of sampling clocks.
+ * @param SampleClock: Number of sampling clocks. (for input channel n sample clock setting, ADC_CH_n)
  *   This parameter must be between 0x00 to 0xFF.
  * @retval None
  ************************************************************************************************************/
@@ -200,7 +203,12 @@ void ADC_RegularChannelConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u8 Rank, u8 
   Assert_Param(IS_ADC_INPUT_SAMPLING_TIME(SampleClock));
 
   /* config sampling clock of correspond ADC input channel                                                  */
-  HT_ADCn->STR[ADC_CH_n] = SampleClock;
+#if (HT32_LIB_LITE == 0)
+  if (ADC_CH_n < 16)
+#endif
+  {
+    HT_ADCn->STR[ADC_CH_n] = SampleClock;
+  }
 
   /* Get the old register value                                                                             */
   tmpreg1 = HT_ADCn->LST[Rank >> 2];
@@ -221,12 +229,12 @@ void ADC_RegularChannelConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u8 Rank, u8 
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_CH_n: the ADC channel to configure
  *   This parameter can be one of the following values:
- *     @arg ADC_CH_n        : ADC Channel x selected, x must between 0 ~ 11
+ *     @arg ADC_CH_n        : ADC Channel n selected, n must between 0 ~ m (m represent the maximum external ADC input channel).
  *     @arg ADC_CH_GND_VREF : ADC GND VREF selected
  *     @arg ADC_CH_VDD_VREF : ADC VDD VREF selected
  * @param Rank: The rank in the high priority group sequencer.
  *   This parameter must be between 0 to 3.
- * @param SampleClock: Number of sampling clocks.
+ * @param SampleClock: Number of sampling clocks. (for input channel n sample clock setting, ADC_CH_n)
  *   This parameter must be between 0x00 to 0xFF.
  * @retval None
  ************************************************************************************************************/
@@ -241,7 +249,12 @@ void ADC_HPChannelConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u8 Rank, u8 Sampl
   Assert_Param(IS_ADC_INPUT_SAMPLING_TIME(SampleClock));
 
   /* config sampling clock of correspond ADC input channel                                                  */
-  HT_ADCn->STR[ADC_CH_n] = SampleClock;
+#if (HT32_LIB_LITE == 0)
+  if (ADC_CH_n < 16)
+#endif
+  {
+    HT_ADCn->STR[ADC_CH_n] = SampleClock;
+  }
 
   /* Get the old register value                                                                             */
   tmpreg1 = HT_ADCn->HLST;
@@ -299,6 +312,7 @@ void ADC_RegularTrigConfig(HT_ADC_TypeDef* HT_ADCn, u32 ADC_TRIG_x)
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_TRIG_x:
  *   This parameter can be one of the following values:
+ *     @arg ADC_TRIG_SOFTWARE   : S/W trigger
  *     @arg ADC_TRIG_EXTI_n     : where n can be 0 ~ 15
  *     @arg ADC_TRIG_MCTMn_MTO  : where n can be 0
  *     @arg ADC_TRIG_MCTMn_CH0O : where n can be 0
@@ -329,15 +343,13 @@ void ADC_HPTrigConfig(HT_ADC_TypeDef* HT_ADCn, u32 ADC_TRIG_x)
   HT_ADCn->HTSR = ADC_TRIG_x & (~0x0000001F);
 }
 
+#if (!LIBCFG_ADC_NO_OFFSET_REG)
 /*********************************************************************************************************//**
  * @brief Configure the channel data alignment format.
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_CH_n: the ADC channel to configure
  *   This parameter can be one of the following values:
- *     @arg ADC_CH_n        : ADC Channel x selected
- *     @arg ADC_CH_OPAn     : ADC channel for OPAn
- *     @arg ADC_CH_GND_VREF : ADC GND VREF selected
- *     @arg ADC_CH_VDD_VREF : ADC VDD VREF selected
+ *     @arg ADC_CH_n        : ADC Channel x selected, x must between 0 ~ 15
  * @param ADC_ALIGN_x: ADC_ALIGN_RIGHT or ADC_ALIGN_LEFT
  * @retval None
  ************************************************************************************************************/
@@ -347,7 +359,7 @@ void ADC_ChannelDataAlign(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ADC_ALIGN_Enum A
 
   /* Check the parameters                                                                                   */
   Assert_Param(IS_ADC(HT_ADCn));
-  Assert_Param(IS_ADC_CHANNEL(ADC_CH_n));
+  Assert_Param(IS_ADC_INPUT_CHANNEL(ADC_CH_n));
   Assert_Param(IS_ADC_ALIGN(ADC_ALIGN_x));
 
   OFRValue = HT_ADCn->OFR[ADC_CH_n] & (~(OFR_ADAL));
@@ -361,10 +373,7 @@ void ADC_ChannelDataAlign(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ADC_ALIGN_Enum A
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_CH_n: the ADC channel to configure
  *   This parameter can be one of the following values:
- *     @arg ADC_CH_n        : ADC Channel x selected
- *     @arg ADC_CH_OPAn     : ADC channel for OPAn
- *     @arg ADC_CH_GND_VREF : ADC GND VREF selected
- *     @arg ADC_CH_VDD_VREF : ADC VDD VREF selected
+ *     @arg ADC_CH_n        : ADC Channel x selected, x must between 0 ~ 15
  * @param OffsetValue: The offset value
  * @retval None
  ************************************************************************************************************/
@@ -374,7 +383,7 @@ void ADC_ChannelOffsetValue(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u16 OffsetValu
 
   /* Check the parameters                                                                                   */
   Assert_Param(IS_ADC(HT_ADCn));
-  Assert_Param(IS_ADC_CHANNEL(ADC_CH_n));
+  Assert_Param(IS_ADC_INPUT_CHANNEL(ADC_CH_n));
   Assert_Param(IS_ADC_OFFSET(OffsetValue));
 
   OFRValue = HT_ADCn->OFR[ADC_CH_n] & (~OFR_ADOF_MASK);
@@ -387,10 +396,7 @@ void ADC_ChannelOffsetValue(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, u16 OffsetValu
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
  * @param ADC_CH_n: the ADC channel to configure
  *   This parameter can be one of the following values:
- *     @arg ADC_CH_n        : ADC Channel x selected
- *     @arg ADC_CH_OPAn     : ADC channel for OPAn
- *     @arg ADC_CH_GND_VREF : ADC GND VREF selected
- *     @arg ADC_CH_VDD_VREF : ADC VDD VREF selected
+ *     @arg ADC_CH_n        : ADC Channel x selected, x must between 0 ~ 15
  * @param NewState: ENABLE DISABLE
  * @retval None
  ************************************************************************************************************/
@@ -400,7 +406,7 @@ void ADC_ChannelOffsetCmd(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ControlStatus Ne
 
   /* Check the parameters                                                                                   */
   Assert_Param(IS_ADC(HT_ADCn));
-  Assert_Param(IS_ADC_CHANNEL(ADC_CH_n));
+  Assert_Param(IS_ADC_INPUT_CHANNEL(ADC_CH_n));
   Assert_Param(IS_CONTROL_STATUS(NewState));
 
   OFRValue = HT_ADCn->OFR[ADC_CH_n] & (~(OFR_ADOFE));
@@ -412,6 +418,7 @@ void ADC_ChannelOffsetCmd(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n, ControlStatus Ne
 
   HT_ADCn->OFR[ADC_CH_n] = OFRValue;
 }
+#endif
 
 /*********************************************************************************************************//**
  * @brief Enable or Disable software start of the regular channel conversion of the selected ADC.
@@ -650,7 +657,7 @@ void ADC_AWDConfig(HT_ADC_TypeDef* HT_ADCn, u32 ADC_AWD_x)
 /*********************************************************************************************************//**
  * @brief Configure the analog watchdog that guards single channel.
  * @param HT_ADCn: where HT_ADCn is the selected ADC from the ADC peripherals.
- * @param ADC_CH_n: where n must between 0 ~ 11
+ * @param ADC_CH_n: where n must between 0 ~ m (m represent the maximum external ADC input channel).
  * @retval None
  ************************************************************************************************************/
 void ADC_AWDSingleChannelConfig(HT_ADC_TypeDef* HT_ADCn, u8 ADC_CH_n)

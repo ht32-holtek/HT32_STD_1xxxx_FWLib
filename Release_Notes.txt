@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    Release_Notes.txt
- * @version V1.7.1
- * @date    2026-02-09
+ * @version V1.8.1
+ * @date    2026-06-29
  * @brief   The Release notes of HT32 Firmware Library.
  *************************************************************************************************************
  * @attention
@@ -33,6 +33,39 @@
 //   HT32F12364
 //   HT32F12365, HT32F12366
 //   HT32F22366
+
+/*----------------------------------------------------------------------------------------------------------*/
+/* HT32_STD_1xxxx_FWLib_V1.8.1_3664                                                                         */
+/*----------------------------------------------------------------------------------------------------------*/
+  Release Date: 2026-06-29
+  Main Changes
+  + Rename EBI parameters.
+    - Old Name                          | New Name
+    - --------------------------------- | ----------------------------
+    - "ATR0"                            | "ATR"
+    - "RTR0"                            | "RTR"
+    - "WTR0"                            | "WTR"
+    - "PR0"                             | "PR"
+  + Update interval for polling endpoint in the following examples to comply with the specification:
+    - "example/USBD/HID_Keyboard_Virtual_COM"
+    - "example/USBD/Virtual_COM"
+  + Update time function in the following files to support MCTM1:
+    - "ht32_time.h"
+    - "ht32f1xxxx_conf.h"
+  + Update CKCU driver to add "CKCU_SetHSEGainMode()" function to configure the HSE gain mode.
+  + Update I2C driver to avoid I2C Busy Flag being set in "I2C_SequentialFilterConfig()" function.
+  + Update ADC driver to modify the "ADC_Reset()" function to wait until the software reset finish.
+
+  Others
+  + Update comment, format, typing error, and coding style.
+  + Modify "printf.c" to avoid compilation issues when "_RETARGET" is disabled.
+  + Update GPIO driver to optimize the size of "AFIO_GPxConfig()" function.
+  + Update the parameter checking macros ("IS_GPIO", "IS_GPIO_PR", and "IS_AFIO_ESS") by splitting them into
+    smaller sub-macros to improve code structure.
+  + Update the AES key size definitions by adding "IS_AES_KEY_SIZE1" and "IS_AES_KEY_SIZE2" macros to
+    separately validate 128-bit and 192/256-bit key sizes.
+  + Add "ADC_CAL_TEMP_POINT_SORUCE" and "ADC_FIXED_CAL_TEMP_mC" definitions in "ht32f1xxxx_conf.h" to configure 
+    the ADC temperature sensor calibration point source and reference temperature.
 
 /*----------------------------------------------------------------------------------------------------------*/
 /* HT32_STD_1xxxx_FWLib_V1.7.1_3596                                                                         */

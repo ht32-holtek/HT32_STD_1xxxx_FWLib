@@ -1,8 +1,8 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_aes.h
- * @version $Rev:: 2985         $
- * @date    $Date:: 2023-12-14 #$
- * @brief   The header file of the ADC library.
+ * @version $Rev:: 3616         $
+ * @date    $Date:: 2026-04-30 #$
+ * @brief   The header file of the AES library.
  *************************************************************************************************************
  * @attention
  *
@@ -73,10 +73,13 @@ typedef struct
 
 /* Definitions of AES key size                                                                              */
 #define AES_KEYSIZE_128B                   ((u32)0x00000000)
+#define IS_AES_KEY_SIZE1(SIZE)             (SIZE == AES_KEYSIZE_128B)
+
 #define AES_KEYSIZE_192B                   ((u32)0x00000020)
 #define AES_KEYSIZE_256B                   ((u32)0x00000040)
+#define IS_AES_KEY_SIZE2(SIZE)             ((SIZE == AES_KEYSIZE_192B) || (SIZE == AES_KEYSIZE_256B))
 
-#define IS_AES_KEY_SIZE(SIZE)              ((SIZE == AES_KEYSIZE_128B) || (SIZE == AES_KEYSIZE_192B) || (SIZE == AES_KEYSIZE_256B))
+#define IS_AES_KEY_SIZE(SIZE)              (IS_AES_KEY_SIZE1(SIZE) || IS_AES_KEY_SIZE2(SIZE))
 
 /* Definitions of AES direction                                                                             */
 typedef enum

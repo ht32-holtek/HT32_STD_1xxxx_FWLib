@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_adc_02.c
- * @version $Rev:: 2972         $
- * @date    $Date:: 2023-10-28 #$
+ * @version $Rev:: 3626         $
+ * @date    $Date:: 2026-05-26 #$
  * @brief   This file provides all the ADC firmware functions.
  *************************************************************************************************************
  * @attention
@@ -92,6 +92,7 @@ void ADC_Reset(HT_ADC_TypeDef* HT_ADCn)
   Assert_Param(IS_ADC(HT_ADCn));
 
   HT_ADCn->CR |= ADC_SOFTWARE_RESET;
+  while ((HT_ADCn->CR & ADC_SOFTWARE_RESET) != 0){};
 }
 
 /*********************************************************************************************************//**

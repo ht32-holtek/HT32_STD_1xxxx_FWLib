@@ -1,5 +1,5 @@
 /**
- @page USBD_USB_UAC_Sound
+ @page USBD_USB_UAC_Sound USBD_USB_UAC_Sound
 
  @verbatim
  * @file    USBD/USB_UAC_Sound/readme.txt

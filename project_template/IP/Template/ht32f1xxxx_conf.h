@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    IP/Example/ht32f1xxxx_conf.h
- * @version $Rev:: 3576         $
- * @date    $Date:: 2025-09-09 #$
+ * @version $Rev:: 3637         $
+ * @date    $Date:: 2026-05-28 #$
  * @brief   Library configuration file.
  *************************************************************************************************************
  * @attention
@@ -241,6 +241,7 @@
 //      <9=> GPTM0
 //      <10=> GPTM1
 //      <11=> MCTM0
+//      <12=> MCTM1
 
 //  <h> Timer Clock Setting
 //  </h>
@@ -353,6 +354,20 @@
 //    <i> Those information is only valid after calling "StackUsageAnalysisInit()" function.
 */
 #define HTCFG_STACK_USAGE_ANALYSIS                0
+
+//  <h> Calibration Temperature
+//  <o0> Calibration Temperature Point Source
+//      <0=> Fixed Default Temperature
+//      <1=> Factory Trim Code
+// <i> !!! NOTICE !!! The fixed default temperature is calibrated under specific production test conditions,
+// <i> which represent the environment of that batch only. The actual calibration temperature may slightly
+// <i> between production lots.
+#define ADC_CAL_TEMP_POINT_SORUCE     0
+
+// <o0> Temperature Sensor Calibration Reference
+// <i> Set the calibration reference temperature in milli-degree Celsius.
+// <i> This setting is only effective when ADC_CAL_TEMP_POINT_SORUCE is set to 0 (Fixed Default Temperature).
+#define ADC_FIXED_CAL_TEMP_mC       22000
 
 /* Enable/disable the specific peripheral inclusion                                                         */
 
@@ -509,7 +524,7 @@
 
 /* USART ---------------------------------------------------------------------------------------------------*/
 /*
-//<q0> USART/UART Library
+//<q> USART/UART Library
 */
 #define _USART        1
 

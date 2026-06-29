@@ -1,7 +1,7 @@
 /*********************************************************************************************************//**
  * @file    ht32f1xxxx_ckcu.c
- * @version $Rev:: 3529         $
- * @date    $Date:: 2025-07-25 #$
+ * @version $Rev:: 3642         $
+ * @date    $Date:: 2026-05-28 #$
  * @brief   This file provides all the Clock Control Unit firmware functions.
  *************************************************************************************************************
  * @attention
@@ -1067,6 +1067,22 @@ bool CKCU_HSIAutoTrimIsReady(void)
 #endif
 }
 #endif
+
+/*********************************************************************************************************//**
+ * @brief Set HSE Gain Mode.
+ * @param GanMode: Specify the gain mode of HSE.
+ *   This parameter can be:
+ *     @arg CKCU_HSE_LOW_GAIN_MODE         : HSE low gain mode
+ *     @arg CKCU_HSE_HIGH_GAIN_MODE        : HSE high gain mode
+ * @retval None
+ ************************************************************************************************************/
+void CKCU_SetHSEGainMode(u32 GanMode)
+{
+  /* Check the parameters                                                                                   */
+  Assert_Param(IS_GAINMODE(GanMode));
+
+  HT_CKCU->GCCR = (HT_CKCU->GCCR & ~(0x100)) | GanMode;
+}
 /**
   * @}
   */
