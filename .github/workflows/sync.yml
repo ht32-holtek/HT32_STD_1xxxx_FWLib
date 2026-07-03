@@ -24,11 +24,19 @@ jobs:
           force_update: true
 
       # 2. 同步 Release（移除了限制條件，手動執行時也一定會跑這一步！）
+      #- name: Sync Release to Gitee
+      #  uses: trustedinster/sync-release-gitee@v1.3
+      #  with:
+      #    github_owner: ${{ github.repository_owner }}
+      #    github_repo: ${{ github.event.repository.name }}
+      #    gitee_owner: ${{ secrets.GITEE_USER }}
+      #    gitee_repo: ${{ github.event.repository.name }}
+      #    gitee_token: ${{ secrets.GITEE_TOKEN }}
+      # 2. 同步 Release（移除了限制條件，手動執行時也一定會跑這一步！）
       - name: Sync Release to Gitee
-        uses: trustedinster/sync-release-gitee@v1.3
+        uses: Mogeko/gitee-release-action@main
         with:
-          github_owner: ${{ github.repository_owner }}
-          github_repo: ${{ github.event.repository.name }}
-          gitee_owner: ${{ secrets.GITEE_USER }}
-          gitee_repo: ${{ github.event.repository.name }}
+          gitee_id: ${{ secrets.GITEE_USER }}
           gitee_token: ${{ secrets.GITEE_TOKEN }}
+          # 這裡組合出 Gitee 的完整倉庫路徑，例如：你的帳號/HT32_STD_1xxxx_FWLib
+          gitee_repo: ${{ secrets.GITEE_USER }}/${{ github.event.repository.name }}
