@@ -12,24 +12,29 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
-      # 1. 優先下載專案與完整 Git 歷史紀錄（解決 fatal: not a git repository 問題）
+      # 1. 完整下載 GitHub 專案與所有 Git 紀錄、Tags
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 設為 0 才會下載完整的歷史紀錄與所有 Tags
+          fetch-depth: 0 # 設為 0 才會下載完整歷史紀錄與所有 Tags
 
-      # 2. 先同步代碼與 Tags 到 Gitee
-      - name: Mirror the GitHub repos to Gitee
-        uses: Yikun/hub-mirror-action@master
-        with:
-          src: github/${{ github.repository_owner }}
-          dst: gitee/${{ secrets.GITEE_USER }}
-          dst_key: ${{ secrets.GITEE_PRIVATE_KEY }}
-          dst_token: ${{ secrets.GITEE_TOKEN }}
-          static_list: "${{ github.event.repository.name }}"
-          force_update: true
+      # 2. 用原生 Git 指令直接將代碼與 Tags 強制推送到 Gitee
+      - name: Mirror Code and Tags to Gitee
+        env:
+          GITEE_USER: ${{ secrets.GITEE_USER }}
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_REPO: ${{ github.event.repository.name }}
+        run: |
+          echo "🚀 開始同步代碼與 Tags 至 Gitee..."
+          # 組合包含 Token 的安全傳輸 URL
+          GITEE_REMOTE_URL="https://${GITEE_USER}:${GITEE_TOKEN}@gitee.com/${GITEE_USER}/${GITEE_REPO}.git"
+          
+          # 強制推送當前分支與所有 Tags
+          git push --force "$GITEE_REMOTE_URL" refs/remotes/origin/*:refs/heads/*
+          git push --tags --force "$GITEE_REMOTE_URL"
+          echo "✅ 代碼與 Tags 同步成功！"
 
-# 3. 同步 Release（加上進階除錯與錯誤攔截）
+      # 3. 同步 Release（原生 cURL 呼叫 Gitee API）
       - name: Sync Release to Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
@@ -41,23 +46,21 @@ jobs:
           RELEASE_NAME="${{ github.event.release.name }}"
           RELEASE_BODY="${{ github.event.release.body }}"
 
-          # 防呆：抓不到 release 變數就拿最後一個 Git Tag
-          if [ -z "$TAG_NAME" ]; then
+          # 防呆：手動觸發時若抓不到 release 變數，就自動拿最後一個 Git Tag
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
             TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
             RELEASE_NAME="Release $TAG_NAME"
             RELEASE_BODY="Automated sync from GitHub"
           fi
 
           echo "🔍 偵測到要同步的 Tag 為: $TAG_NAME"
-          
-          # 如果連當前專案都抓不到任何 Tag，直接中斷報錯
-          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
-            echo "❌ 錯誤：在當前 Git 紀錄中找不到任何有效的 Tag！"
+
+          if [ -z "$TAG_NAME" ]; then
+            echo "❌ 錯誤：找不到任何有效的 Git Tag！"
             exit 1
           fi
 
-          # 呼叫 Gitee API 並捕捉回傳的 HTTP 狀態碼與內容
-          echo "🚀 正在發送請求到 Gitee API..."
+          echo "🚀 正在發送請求到 Gitee API 建立 Release..."
           RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
             -H "Content-Type: application/json" \
             -d "{
@@ -68,17 +71,16 @@ jobs:
               \"prerelease\": false
             }")
 
-          # 解析回應內容與狀態碼
           HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
           BODY=$(echo "$RESPONSE" | sed '/HTTP_STATUS/d')
 
           echo "📡 Gitee API 回應狀態碼: $HTTP_STATUS"
           echo "📡 Gitee API 回應內容: $BODY"
 
-          # 如果狀態碼不是 201 (Created)，代表 Gitee 拒絕了請求，讓 Workflow 變紅燈報錯
-          if [ "$HTTP_STATUS" != "201" ]; then
-            echo "❌ Gitee Release 同步失敗！請檢查上方回應內容。"
+          # 201 代表成功建立，422 有可能代表該 Release 其實已經存在
+          if [ "$HTTP_STATUS" != "201" ] && [ "$HTTP_STATUS" != "422" ]; then
+            echo "❌ Gitee Release 同步失敗！"
             exit 1
           else
-            echo "✅ Gitee Release 同步成功！"
+            echo "✅ Gitee Release 同步完成！"
           fi
