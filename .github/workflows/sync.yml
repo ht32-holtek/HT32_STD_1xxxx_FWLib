@@ -29,7 +29,7 @@ jobs:
           static_list: "${{ github.event.repository.name }}"
           force_update: true
 
-      # 3. 同步 Release（使用原生 cURL 呼叫 Gitee API，移除限制條件）
+# 3. 同步 Release（加上進階除錯與錯誤攔截）
       - name: Sync Release to Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
@@ -41,18 +41,24 @@ jobs:
           RELEASE_NAME="${{ github.event.release.name }}"
           RELEASE_BODY="${{ github.event.release.body }}"
 
-          # 如果是手動觸發 (workflow_dispatch)，或者是 Push 觸發，可能拿不到 release 變數
-          # 這邊做一個防呆：如果抓不到，就自動拿最後一個 Git Tag 當作 Release 版本
+          # 防呆：抓不到 release 變數就拿最後一個 Git Tag
           if [ -z "$TAG_NAME" ]; then
             TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
             RELEASE_NAME="Release $TAG_NAME"
             RELEASE_BODY="Automated sync from GitHub"
           fi
 
-          echo "準備同步至 Gitee Release: $TAG_NAME"
+          echo "🔍 偵測到要同步的 Tag 為: $TAG_NAME"
+          
+          # 如果連當前專案都抓不到任何 Tag，直接中斷報錯
+          if [ -z "$TAG_NAME" ] || [ "$TAG_NAME" = "null" ]; then
+            echo "❌ 錯誤：在當前 Git 紀錄中找不到任何有效的 Tag！"
+            exit 1
+          fi
 
-          # 呼叫 Gitee API 建立發行版
-          curl -X POST "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+          # 呼叫 Gitee API 並捕捉回傳的 HTTP 狀態碼與內容
+          echo "🚀 正在發送請求到 Gitee API..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
             -H "Content-Type: application/json" \
             -d "{
               \"access_token\": \"${GITEE_TOKEN}\",
@@ -60,4 +66,19 @@ jobs:
               \"name\": \"${RELEASE_NAME}\",
               \"body\": \"${RELEASE_BODY}\",
               \"prerelease\": false
-            }"
+            }")
+
+          # 解析回應內容與狀態碼
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS" | cut -d':' -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_STATUS/d')
+
+          echo "📡 Gitee API 回應狀態碼: $HTTP_STATUS"
+          echo "📡 Gitee API 回應內容: $BODY"
+
+          # 如果狀態碼不是 201 (Created)，代表 Gitee 拒絕了請求，讓 Workflow 變紅燈報錯
+          if [ "$HTTP_STATUS" != "201" ]; then
+            echo "❌ Gitee Release 同步失敗！請檢查上方回應內容。"
+            exit 1
+          else
+            echo "✅ Gitee Release 同步成功！"
+          fi
