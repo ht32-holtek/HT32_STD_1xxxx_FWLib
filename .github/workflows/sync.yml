@@ -33,12 +33,34 @@ jobs:
       #    gitee_repo: ${{ github.event.repository.name }}
       #    gitee_token: ${{ secrets.GITEE_TOKEN }}
       - name: Sync Release to Gitee
-        uses: hepengju/release2gitee@v1
-        with:
-          # GitHub 資訊（自動讀取，不用死資料）
-          github_repo: ${{ github.repository }}
-          github_token: ${{ secrets.GITHUB_TOKEN }} # 這是 GitHub 內建變數，不需要去 Secret 設定它
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_OWNER: ${{ secrets.GITEE_USER }}
+          GITEE_REPO: ${{ github.event.repository.name }}
+        run: |
+          # 1. 取得最新 GitHub Release 的標籤與名稱
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          RELEASE_NAME="${{ github.event.release.name }}"
+          RELEASE_BODY="${{ github.event.release.body }}"
 
-          # Gitee 資訊
-          gitee_repo: ${{ secrets.GITEE_USER }}/${{ github.event.repository.name }}
-          gitee_token: ${{ secrets.GITEE_TOKEN }}
+          # 如果是手動觸發 (workflow_dispatch)，或者是 Push 觸發，可能拿不到 release 變數
+          # 這邊做一個防呆：如果抓不到，就自動拿最後一個 Git Tag 當作 Release 版本
+          if [ -z "$TAG_NAME" ]; then
+            git fetch --tags
+            TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
+            RELEASE_NAME="Release $TAG_NAME"
+            RELEASE_BODY="Automated sync from GitHub"
+          fi
+
+          echo "準備同步至 Gitee Release: $TAG_NAME"
+
+          # 2. 呼叫 Gitee API 建立發行版 (如果已存在會返回錯誤，這邊加 -s 容錯)
+          curl -X POST "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"access_token\": \"${GITEE_TOKEN}\",
+              \"tag_name\": \"${TAG_NAME}\",
+              \"name\": \"${RELEASE_NAME}\",
+              \"body\": \"${RELEASE_BODY}\",
+              \"prerelease\": false
+            }"
