@@ -32,11 +32,13 @@ jobs:
       #    gitee_owner: ${{ secrets.GITEE_USER }}
       #    gitee_repo: ${{ github.event.repository.name }}
       #    gitee_token: ${{ secrets.GITEE_TOKEN }}
-      # 2. 同步 Release（移除了限制條件，手動執行時也一定會跑這一步！）
       - name: Sync Release to Gitee
-        uses: Mogeko/gitee-release-action@main
+        uses: hepengju/release2gitee@v1
         with:
-          gitee_id: ${{ secrets.GITEE_USER }}
-          gitee_token: ${{ secrets.GITEE_TOKEN }}
-          # 這裡組合出 Gitee 的完整倉庫路徑，例如：你的帳號/HT32_STD_1xxxx_FWLib
+          # GitHub 資訊（自動讀取，不用死資料）
+          github_repo: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }} # 這是 GitHub 內建變數，不需要去 Secret 設定它
+
+          # Gitee 資訊
           gitee_repo: ${{ secrets.GITEE_USER }}/${{ github.event.repository.name }}
+          gitee_token: ${{ secrets.GITEE_TOKEN }}
