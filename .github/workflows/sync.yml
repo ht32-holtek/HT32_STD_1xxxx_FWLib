@@ -68,6 +68,7 @@ jobs:
               \"tag_name\": \"${TAG_NAME}\",
               \"name\": \"${RELEASE_NAME}\",
               \"body\": \"${RELEASE_BODY}\",
+              \"target_commitish\": \"main\",
               \"prerelease\": false
             }")
 
@@ -77,7 +78,7 @@ jobs:
           echo "📡 Gitee API 回應狀態碼: $HTTP_STATUS"
           echo "📡 Gitee API 回應內容: $BODY"
 
-          # 201 代表成功建立，422 有可能代表該 Release 其實已經存在
+          # 201 代表成功建立，422 代表該 Release 其實已經存在
           if [ "$HTTP_STATUS" != "201" ] && [ "$HTTP_STATUS" != "422" ]; then
             echo "❌ Gitee Release 同步失敗！"
             exit 1
