@@ -12,7 +12,13 @@ jobs:
   repo-sync:
     runs-on: ubuntu-latest
     steps:
-      # 1. 先同步代碼與 Tags
+      # 1. 優先下載專案與完整 Git 歷史紀錄（解決 fatal: not a git repository 問題）
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 設為 0 才會下載完整的歷史紀錄與所有 Tags
+
+      # 2. 先同步代碼與 Tags 到 Gitee
       - name: Mirror the GitHub repos to Gitee
         uses: Yikun/hub-mirror-action@master
         with:
@@ -23,22 +29,14 @@ jobs:
           static_list: "${{ github.event.repository.name }}"
           force_update: true
 
-      # 2. 同步 Release（移除了限制條件，手動執行時也一定會跑這一步！）
-      #- name: Sync Release to Gitee
-      #  uses: trustedinster/sync-release-gitee@v1.3
-      #  with:
-      #    github_owner: ${{ github.repository_owner }}
-      #    github_repo: ${{ github.event.repository.name }}
-      #    gitee_owner: ${{ secrets.GITEE_USER }}
-      #    gitee_repo: ${{ github.event.repository.name }}
-      #    gitee_token: ${{ secrets.GITEE_TOKEN }}
+      # 3. 同步 Release（使用原生 cURL 呼叫 Gitee API，移除限制條件）
       - name: Sync Release to Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
           GITEE_OWNER: ${{ secrets.GITEE_USER }}
           GITEE_REPO: ${{ github.event.repository.name }}
         run: |
-          # 1. 取得最新 GitHub Release 的標籤與名稱
+          # 取得最新 GitHub Release 的標籤與名稱
           TAG_NAME="${{ github.event.release.tag_name }}"
           RELEASE_NAME="${{ github.event.release.name }}"
           RELEASE_BODY="${{ github.event.release.body }}"
@@ -46,7 +44,6 @@ jobs:
           # 如果是手動觸發 (workflow_dispatch)，或者是 Push 觸發，可能拿不到 release 變數
           # 這邊做一個防呆：如果抓不到，就自動拿最後一個 Git Tag 當作 Release 版本
           if [ -z "$TAG_NAME" ]; then
-            git fetch --tags
             TAG_NAME=$(git describe --tags `git rev-list --tags --max-count=1`)
             RELEASE_NAME="Release $TAG_NAME"
             RELEASE_BODY="Automated sync from GitHub"
@@ -54,7 +51,7 @@ jobs:
 
           echo "準備同步至 Gitee Release: $TAG_NAME"
 
-          # 2. 呼叫 Gitee API 建立發行版 (如果已存在會返回錯誤，這邊加 -s 容錯)
+          # 呼叫 Gitee API 建立發行版
           curl -X POST "https://gitee.com/api/v5/repos/${GITEE_OWNER}/${GITEE_REPO}/releases" \
             -H "Content-Type: application/json" \
             -d "{
